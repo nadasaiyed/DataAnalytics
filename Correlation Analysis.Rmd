@@ -1,0 +1,81 @@
+---
+title: "Asgn2"
+author: "Nada_Saiyed"
+date: "3/2/2020"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
+library(pastecs)
+library(ggm)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+
+Estimates 
+
+```{r}
+
+tb_burden<-read.csv("TB_burden_countries_2020-02-29.csv")
+tb_burden
+tb_burden2018<-tb_burden %>% filter(year==2018) 
+tb_burden2018<-tb_burden2018 %>% group_by(country) %>% 
+  summarise(population=sum(e_pop_num),incidents=sum(e_inc_num),
+            mortality=sum(e_mort_num), cfr=sum(cfr),mort100=sum(e_mort_100k))
+tb_burden2018
+```
+
+Expenditure
+
+```{r}
+list.files()
+tb_expenditure<-read.csv("TB_expenditure_utilisation_2020-02-29.csv")
+#because we dont have estimates before 2017 and after 2018 - working with more recent data
+tb_expenditure<-tb_expenditure %>% filter(year==2018) %>% group_by(country) %>%
+  summarise(exp_tot=sum(exp_tot))
+tb_expenditure
+```
+
+Merge Datasets
+
+```{r}
+tb_expense<-merge(tb_budget_2018,tb_expenditure,by="country",all.x=TRUE)
+tb_data<-merge(tb_burden2018,tb_expense,by="country",all.x = TRUE)
+tb_data
+```
+
+```{r}
+tb_data %>% 
+ggplot(aes(sample=exp_tot)) + 
+  stat_qq() + geom_qq_line(aes(color="red")) + theme(legend.position = "none")
+
+
+cor.test((tb_data$mortality),(tb_data$exp_tot),method="spearman")
+boxplot(tb_data$population)
+arrange(tb_data,desc(population))
+
+```
+
+Partial correlation
+
+```{r}
+tbdata<-tb_data %>% select("incidents","mortality","exp_tot") %>% filter(!is.na(incidents) & !is.na(mortality),!is.na(exp_tot))
+print(cor(tbdata$mortality,tbdata$exp_tot,method="spearman"))
+print(pcor(c("mortality","exp_tot","incidents"),var(tbdata)))
+```
+TB - Burden Data
+
+```{r}
+tb_burden18<-tb_burden %>% filter(year==2018 & !is.na(e_inc_100k))
+view(tb_burden18)
+boxplot(tb_burden18$e_inc_100k)
+```
+
