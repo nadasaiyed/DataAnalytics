@@ -1,0 +1,1 @@
+This folder contains feature selection to predict Wine quality using Multiple Linear Regression. The significace of every selected feature is tested and keeping multicolinearity in line a regression model is trained on given dataset.
