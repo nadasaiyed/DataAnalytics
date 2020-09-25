@@ -1,0 +1,76 @@
+---
+title: "ChickWeight Data Set Report"
+author: "Group 17"
+date: '2020-01-23'
+output:
+  word_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("tidyverse") 
+library("ggplot2") 
+library("summarytools") 
+library("dplyr")
+library("Rmisc")
+```
+
+# Data
+
+The ChickWeight data frame provides us with information on the effect of four different diets on different chicks. It has 578 observations and it has 4 variables. The variables are weight, Time, Chick and Diet. Time is a numeric vector which gives the number of days elapsed since the birth of the chick. Time can take on the following values: 0,2,4,6,8,10,12,14,16,18,20 and 21. weight is a numeric vector which gives the weight of the chick measured on each of these days, weight ranges from 35-373 and it has a standard deviation of 71.07196. Chick is an ordered factor which takes on values from 1 to 50 and it serves as a unique identifier for the chick. Diet is a factor with levels 1 to 4 and it indicates which experimental diet the chick received.
+
+A summary of all the variables in ChickWeight Data Set is given below which shows the mean and the range of the different variables:
+
+
+```{r }
+dfSummary(ChickWeight)
+data.frame(table(ChickWeight$Chick)) %>% arrange(Freq)
+
+```
+
+
+Since weight is the variable that we are going to be analyzing, we can get an understanding of how weight varies across the time period by looking at the boxplot below.
+
+
+```{r }
+ChickWeight %>% ggplot(aes(x=as.factor(Time),y=weight))+geom_boxplot()+labs(x="Time",y="Weight",title="Weight of Chick vs Time")
+```
+
+# Analysis
+
+We can calculate the confidence intervals for mean weight at day 20 for each Diet by first finding subsets of the data for each diet and then using the CI funtion rmisc package.
+
+```{r echo=FALSE}
+Diet1weights<-subset(ChickWeight,Diet==1) %>% filter(Time==20)
+Diet2weights<-subset(ChickWeight,Diet==2)%>% filter(Time==20)
+Diet3weights<-subset(ChickWeight,Diet==3)%>% filter(Time==20)
+Diet4weights<-subset(ChickWeight,Diet==4)%>% filter(Time==20)
+
+chickCI1<-CI(Diet1weights$weight)
+chickCI2<-CI(Diet2weights$weight)
+chickCI3<-CI(Diet3weights$weight)
+chickCI4<-CI(Diet4weights$weight)
+
+df<-data.frame(chickCI1,chickCI2,chickCI3,chickCI4)
+allCI<-data.frame(upper=c(198.9142,255.8554,305.5727,262.7663),mean=c(170.4118,205.6000,258.9000,233.8889),lower=c(141.9093,155.3446,212.2273,205.0115),Diet=factor(c(1,2,3,4)))
+
+allCI
+
+
+p <- ggplot(allCI, aes(x=Diet))
+p + geom_linerange(aes(ymin = lower, ymax = upper))+geom_point(aes(x=Diet, y=mean), colour="red")+labs(y="Weight",title="Confidence Intervals for mean weight at Day 20")
+
+```
+
+
+From the above graph it is evident that Diet 3 has the highest upper limit and the highest lower limit,Diet 1 has the lowest lower limit and the lowest upper limit,Diet 4 has the 2nd highest upper limit and second highest lower limit.Diet 2 has the second lowest lower limit and second lowest upper limit.The mean weight at day 20 for each diet is in this order: Mean(Diet3)>Mean(Diet4)>Mean(Diet2)>Mean(Diet1).
+
+
+# Conclusion
+
+```{r}
+ChickWeight %>% ggplot(aes(Time,weight,color=Diet))+geom_jitter()+geom_smooth()+facet_grid(.~Diet)+labs(y="Weight",title="Variation of Weight with Time for the four Diets")
+```
+

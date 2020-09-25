@@ -1,0 +1,99 @@
+---
+title: "Flower.analysis"
+author: "Nada_Saiyed"
+date: "1/31/2020"
+output:
+  word_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. The following document deals with the Exploratory Data Analysis of Flower dataset, which we have in an excel file. To perform initial analysis on the dataset, we move the excel file to our working directory of RStudio and load the data in a flower data-frame. 
+
+```{r}
+flower<-read.csv("flower.csv",header = TRUE)
+```
+
+Now that we have our data in a better readable format, we use dim(flower) command to know that there are 150 records and 3 columns. Further, to get a summary of our dataset, we use “summarytools” library to run dfSummary(flower) command* and get the following output.
+
+## Summarizing FLOWER Dataset
+```{r flower, echo=FALSE}
+library("summarytools")
+dfSummary(flower)
+```
+We can see that we have one categorical column, class, which has 3 unique values, namely “Iris-setosa”, “Iris-versicolor” and “Iris-virginica” with equal number of occurrences i.e. 50 data points of each category. The other two columns are numeric columns with continuous data ranging from 1 to 6.9 units for petal_length, with an overall mean of 3.759 units and petal_width ranges from 0.1 to 2.5 units, with an overall mean of 1.199 units.
+
+Now, we compare the petal width and petal length for each class of flower to further analyse the distribution.
+```{r}
+library("tidyverse")
+ggplot(flower,aes(x=petal_length,color=class))+geom_freqpoly()
+```
+```{r}
+ggplot(flower,aes(x=petal_width,color=class))+geom_freqpoly()
+```
+
+Comparing different categorywise petal width
+```{r}
+ ggplot(flower,aes(x=petal_width,y=petal_length,color=class)) + geom_point() +labs(x="Petal Width",y="Petal Length",title="Comparing dimensions of Iris' classes ") + geom_smooth(method = "lm")
+```
+```{r}
+
+iris_virginica<-subset(flower,class=="Iris-virginica")
+iris_setosa<-subset(flower,class=="Iris-setosa")
+iris_versicolor<-subset(flower,class=="Iris-versicolor")
+install.packages("Rmisc")
+library("Rmisc")
+ w_vir_ci<-CI(iris_virginica$petal_width)
+ w_set_ci<-CI(iris_setosa$petal_width)
+ w_ver_ci<-CI(iris_versicolor$petal_width)
+ l_ver_ci<-CI(iris_versicolor$petal_length)
+ l_set_ci<-CI(iris_setosa$petal_length)
+ l_vir_ci<-CI(iris_virginica$petal_length)
+
+## define data sets for flower CI
+ mean_widths<-c(w_vir_ci["mean"],w_set_ci["mean"],w_ver_ci["mean"])
+ lower_limit_width<-c(w_vir_ci["lower"],w_set_ci["lower"],w_ver_ci["lower"])
+ upper_limit_width<-c(w_vir_ci["upper"],w_set_ci["upper"],w_ver_ci["upper"])
+ mean_length<-c(l_vir_ci["mean"],l_set_ci["mean"],l_ver_ci["mean"])
+ lower_limit_length<-c(l_vir_ci["lower"],l_set_ci["lower"],l_ver_ci["lower"])
+ upper_limit_length<-c(l_vir_ci["upper"],l_set_ci["upper"],l_ver_ci["upper"])
+ class<-c("Virginica","Setosa","Versicolor")
+ flower_ci<-data.frame("Class"=class,
+                      "LowerWidth"=lower_limit_width,
+                      "MeanWidth"=mean_widths,
+                      "UpperWidth"=upper_limit_width,
+                      "LowerLength"=lower_limit_length,
+                      "MeanLength"=mean_length,
+                      "UpperLength"=upper_limit_length)
+head(flower_ci)
+```
+ 
+```{r}
+ #Plotting 95% CI for Petal Length
+ ggplot(flower_ci, aes(x=class, y=mean_length, group=1)) +
+    geom_point(alpha=0.52) +
+    geom_errorbar(width=.1, aes(ymin=lower_limit_length, ymax=upper_limit_length), colour="darkred") + labs(x="Class",y= "Mean Length", title="Mean Length of different class of flower petals with Confidence Intervals") 
+```
+
+```{r}
+ #Plotting 95% CI for Petal Width
+ggplot(flower_ci, aes(x=class, y=mean_widths, group=1)) +
+    geom_point(alpha=0.52) +
+    geom_errorbar(width=.1, aes(ymin=lower_limit_width, ymax=upper_limit_width), colour="darkred") + labs(x="Class",y= "Mean Width", title="Mean Width of different class of flower petals with Confidence Intervals") 
+ 
+```
+#Conclusion
+
+```{r}
+area<-flower %>% mutate(
+  area=petal_length*petal_width
+)
+ggplot(area, aes(x=area,y=class,color=class)) + geom_jitter()
+
+```

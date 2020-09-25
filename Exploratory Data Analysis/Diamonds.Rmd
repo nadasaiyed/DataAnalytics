@@ -1,0 +1,94 @@
+---
+title: 'Exploratory Data Analysis on dataset : Diamonds'
+author: "Group 17 Neethu Mariya, Nada Saiyed, Shadh Shanavas"
+date: "1/31/2020"
+output:
+  pdf_document: default
+  word_document: default
+  html_document:
+    df_print: paged
+---
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(echo = TRUE)
+library("tidyverse") 
+library("ggplot2") 
+library("summarytools") 
+library("dplyr")
+library("cowplot")
+```
+
+This is a document on the Exploratory Data Analysis of the default dataset
+Diamonds available with the package ggplot2 in RStudio to discover an intersting
+feature of the diamond price.
+
+## The Data
+
+This data frame contains the prices and 9 attributes of Diamonds collected from
+around 54000 pieces of this valuable gem. The features considered in the
+analysis are carat, cut, color, clarity, depth, table( width of the diamond top)
+and the fundamental dimensions of the diamonds (length, width and depth).
+The carat defines the weights of the diamonds in the range 0.2 to 5.01. The cut
+denotes the quality of the cut for the diamonds catagorized Fair, Good, Very
+Good, Premium, Ideal. Clarity is a measure of how clear the diamond is, I1 being
+the worst, through SI2, SI1, VS2,VS1, VVS2, VVS1, IF being the best. Color
+describes the colour of the diamond, from D(best) to J(worst). x,y,z gives the
+length, width and depth in mm. Depth calculates the percentage of depth of the
+diamond in relation to its average length and width. Table gives the width of
+top of diamond relative to widest point, ranges from 43 to 95.
+```{r echo=FALSE} 
+dfSummary(diamonds, graph.co = TRUE)
+
+```
+## Analysis
+### Don't Get Ripped Off When Buying Diamonds!
+Carat is definitely the most determining 'C's when it comes to the price of a diamond!     But should that be the major determining factor for you as a shopper? Well, lets get into the details before getting ripped off while gifting this precious stone to your loved ones.
+
+Lets analyse how the price varies with carats.
+```{r echo=FALSE}
+diamonds %>% ggplot(aes(carat, price, alpha = 0.001)) + geom_point(color = "thistle4")
+```
+
+We see that the price varies exponentially with carat. 
+
+Does the increasein carat have an visual impact from a shopper's perspective?
+```{r echo=FALSE}
+x <- diamonds %>%  ggplot(aes(carat, x)) + geom_point(color = "violet") + labs(title = "Carat Vs Length")
+y <- diamonds %>%  ggplot(aes(carat, y)) + geom_point(color = "green") + labs(title = "Carat Vs Width")
+z <- diamonds %>%  ggplot(aes(carat, z)) + geom_point(color = "orange") + labs(title = "Carat Vs Depth")
+plot_grid(x, y, z, nrow = 1, ncol = 3)
+
+x_p <- diamonds %>%  ggplot(aes(price, x)) + geom_point(color = "violet") + labs(title = "Price Vs Length")
+y_p <- diamonds %>%  ggplot(aes(price, y)) + geom_point(color = "green") + labs(title = "Price Vs Width")
+z_p <- diamonds %>%  ggplot(aes(price, z)) + geom_point(color = "orange") + labs(title = "Price Vs Depth")
+plot_grid(x_p, y_p, z_p, nrow = 1, ncol = 3)
+```
+
+Yeah! We get bigger stones for higher price.
+But,wait! Is that worth the money?
+There are other C's that should be considered. The Cut and Clarity of the stone have their own pride!
+
+```{r echo=FALSE}
+diamonds %>% ggplot(aes(carat,price, color = clarity, alpha = 0.001)) + facet_grid(clarity~.) + geom_jitter() + geom_smooth(method = "lm", color = "black") + geom_hline(yintercept=5000, linetype="dashed",  color = "black", size=0.5) + geom_vline(xintercept = 1.5, color = "black", size = 0.5, linetype = "dashed") + geom_vline(xintercept = 0.6, color = "black", size = 0.5, linetype = "dashed")
+
+diamonds %>% ggplot(aes(carat,price, color = cut, alpha = 0.001)) + facet_grid(cut~.) + geom_jitter() + geom_smooth(method = "lm", color = "black")
+```
+
+### What does the market demands?
+It would definitely answer many of our questions by knowing what the general trend is. To a first-time shopper this should help to decide on which 'C' to consider important and how to trade-off among them.
+
+```{r fig1, fig.align="center",out.width='40%'}
+diamonds %>% ggplot(aes(color, fill = color)) + geom_bar() + labs(title= "Colors in Demand")
+diamonds %>% ggplot(aes(cut, fill = cut)) + geom_bar() 
+diamonds %>% ggplot(aes(clarity, fill = cut)) + geom_bar()
+```
+
+### This must be fascinating!
+```{r echo = FALSE}
+diamonds %>% ggplot(aes(carat)) + geom_histogram(binwidth = 0.01)
+```
+
+Why are there more diamonds at whole carats and common fractions of carats? Wondering!?
+This interesting plot related back to the 'Magic Sizes'. How often have you seen stones that weigh 0.48 or 0.98 carats? By design, such stones are rare oddities because they fall below the “magic sizes” that can fetch more money.Instead, what you would observe is that the bulk of the stones would usually be cut to nice figures like 0.50 or 1.00 carats.
+
+## Conclusion
+Here, we see that the price of diamond varies exponentially with carat. ie: the cost of a diamond with carat 2.00 is significantly higher than the price of two carat 1.00 diamonds. We also infer that for a fixed budget, the clarity and cut is compromised for bigger carats. So by blindly chasing after a psychological 1.00 carat mark, you often settle for lower clarity/ cut stones which are more likely to have inclusions visible to the naked eye. It is quite clear from the graph that the market demand is dominated by the ideal cut diamonds and the ones having clarity SI2 through VS1. We now understand the difference and meaning of these factors in a diamond and with this, we can now economically trade-off among cut, clarity and carat to own a brilliantly sparkling diamond fitting to your budget. So, now that you know what to look for, don’t wait, go get these gem stones for yourself or your loved ones without getting ripped. 
